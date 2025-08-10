@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String   @default("#3B82F6")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  items       Item[]
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  email       String?
+  phone       String?
+  address     String?
+  contactPerson String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  items       Item[]
+}
+
+model Item {
+  id              String    @id @default(cuid())
+  name            String
+  description     String?
+  sku             String    @unique
+  barcode         String?   @unique
+  price           Float
+  cost            Float?
+  quantity        Int       @default(0)
+  minStockLevel   Int       @default(10)
+  maxStockLevel   Int?
+  location        String?
+  imageUrl        String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  
+  supplierId      String?
+  supplier        Supplier? @relation(fields: [supplierId], references: [id])
+  
+  transactions    Transaction[]
+  
+  @@index([sku])
+  @@index([categoryId])
+  @@index([supplierId])
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  type        String          // IN, OUT, ADJUSTMENT
+  quantity    Int
+  reason      String?
+  notes       String?
+  createdAt   DateTime        @default(now())
+  
+  itemId      String
+  item        Item            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  @@index([itemId])
+  @@index([createdAt])
+}
